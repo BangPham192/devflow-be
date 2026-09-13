@@ -5,9 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Table(name = "users")
@@ -27,5 +25,14 @@ public class User extends BaseEntity {
     private LocalDateTime lastLoginAt;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<UserRole> userRoles =  new HashSet<>();
+    private List<UserRole> userRoles =  new ArrayList<>();
+
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Workspace>  workspaces = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<WorkspaceMember>  workspaceMembers = new ArrayList<>();
+
+    @OneToMany(mappedBy = "inviter", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<WorkspaceInvitation> workspaceInvitations = new ArrayList<>();
 }

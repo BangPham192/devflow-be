@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+    <changeSet id="20260906_add_workspace_members_table" author="bang.pham">
+        <createTable tableName="workspace_members">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true"/>
+            </column>
+
+            <column name="workspace_id" type="bigint">
+                <constraints foreignKeyName="fk_workspace_members_workspace_id" references="workspaces(id)" nullable="false"/>
+            </column>
+            <column name="user_id" type="bigint">
+                <constraints foreignKeyName="fk_workspace_members_user_id" references="users(id)" nullable="false"/>
+            </column>
+            <column name="role_name" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="created_at" type="datetime"/>
+            <column name="updated_at" type="datetime"/>
+        </createTable>
+        <addUniqueConstraint
+            tableName="workspace_members"
+            columnNames="workspace_id, user_id"
+            constraintName="uk_workspace_members_workspace_user"/>
+    </changeSet>
+</databaseChangeLog>
