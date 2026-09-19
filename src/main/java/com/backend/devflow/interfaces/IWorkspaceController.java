@@ -25,4 +25,8 @@ public interface IWorkspaceController {
 
     @PatchMapping("/{workspaceId}")
     WorkspaceDto updateWorkspace(@PathVariable UUID workspaceId, @RequestBody @Valid WorkspaceUpdateRequest workspace);
+
+    @DeleteMapping("/{workspaceId}")
+    void deleteWorkspace(@PathVariable UUID workspaceId);
+
 }

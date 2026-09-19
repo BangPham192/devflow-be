@@ -44,4 +44,9 @@ public class WorkspaceController extends BaseController implements IWorkspaceCon
         UserDetails currentUser = getCurrentUser();
         return workspaceService.updateWorkspace(id, currentUser, request);
     }
+
+    @Override
+    public void deleteWorkspace(UUID workspaceId) {
+        workspaceService.deleteWorkspace(workspaceId);
+    }
 }

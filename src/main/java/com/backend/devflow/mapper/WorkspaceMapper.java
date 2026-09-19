@@ -10,14 +10,17 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
-        imports = java.util.UUID.class)
+@Mapper(componentModel = "spring",
+        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
+        imports = java.util.UUID.class,
+        uses = UserMapper.class)
 public interface WorkspaceMapper {
     WorkspaceMapper INSTANCE = Mappers.getMapper(WorkspaceMapper.class);
 
     @Mapping(target = "publicId", expression = "java(UUID.randomUUID())")
     Workspace toEntity(WorkspaceCreateRequest workspace);
 
+    @Mapping(target = "user", source = "owner")
     WorkspaceDto toDto(Workspace workspace);
 
     @Mapping(target = "publicId", ignore = true)

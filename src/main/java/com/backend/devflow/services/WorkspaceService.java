@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -28,12 +27,17 @@ public class WorkspaceService {
     private final WorkspaceRepository workspaceRepository;
     private final WorkspaceMemberRepository workspaceMemberRepository;
     private final UserRepository userRepository;
+    private final WorkspaceMapper workspaceMapper;
 
     @Autowired
-    public WorkspaceService(WorkspaceRepository workspaceRepository, WorkspaceMemberRepository workspaceMemberRepository, UserRepository userRepository) {
+    public WorkspaceService(WorkspaceRepository workspaceRepository,
+            WorkspaceMemberRepository workspaceMemberRepository,
+            UserRepository userRepository,
+            WorkspaceMapper workspaceMapper) {
         this.workspaceRepository = workspaceRepository;
         this.workspaceMemberRepository = workspaceMemberRepository;
         this.userRepository = userRepository;
+        this.workspaceMapper = workspaceMapper;
     }
 
     public Page<WorkspaceDto> getAllWorkspaces(PageRequestCustom pageRequest) {
@@ -44,7 +48,7 @@ public class WorkspaceService {
             return new PageImpl<>(new ArrayList<>());
         }
         List<WorkspaceDto> workspaceDtos = workspacesPage.getContent().stream()
-            .map(WorkspaceMapper.INSTANCE::toDto).toList();
+            .map(this.workspaceMapper::toDto).toList();
         return new  PageImpl<>(workspaceDtos, page, workspacesPage.getTotalElements());
     }
 
@@ -55,7 +59,7 @@ public class WorkspaceService {
             throw new RuntimeException("User not found");
         }
         // create workspace
-        Workspace workspace = WorkspaceMapper.INSTANCE.toEntity(request);
+        Workspace workspace = this.workspaceMapper.toEntity(request);
         workspace.setOwner(user);
         workspace.setStatus(WorkspaceStatus.OPEN);
         workspaceRepository.save(workspace);
@@ -66,12 +70,12 @@ public class WorkspaceService {
         member.setWorkspace(workspace);
         member.setRoleName(WorkspaceRole.OWNER);
         workspaceMemberRepository.save(member);
-        return WorkspaceMapper.INSTANCE.toDto(workspace);
+        return this.workspaceMapper.toDto(workspace);
     }
 
     public WorkspaceDto getWorkspaceByPublicId(UUID id) {
         Workspace workspace = workspaceRepository.findByPublicId(id);
-        return WorkspaceMapper.INSTANCE.toDto(workspace);
+        return this.workspaceMapper.toDto(workspace);
     }
 
 
@@ -82,10 +86,18 @@ public class WorkspaceService {
         }
 
         Workspace workspace = workspaceRepository.findByPublicId(id);
-        workspace = WorkspaceMapper.INSTANCE.update(workspace, request);
+        workspace = this.workspaceMapper.update(workspace, request);
         workspaceRepository.save(workspace);
 
-        return WorkspaceMapper.INSTANCE.toDto(workspace);
+        return this.workspaceMapper.toDto(workspace);
 
+    }
+
+    public void deleteWorkspace(UUID workspaceId) {
+        Workspace workspace = workspaceRepository.findByPublicId(workspaceId);
+        if (workspace == null) {
+            throw new RuntimeException("Workspace not found");
+        }
+        workspaceRepository.delete(workspace);
     }
 }
