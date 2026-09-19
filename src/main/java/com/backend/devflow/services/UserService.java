@@ -1,5 +1,6 @@
 package com.backend.devflow.services;
 
+import com.backend.devflow.dtos.UserDto;
 import com.backend.devflow.mapper.UserMapper;
 import com.backend.devflow.models.Role;
 import com.backend.devflow.models.User;
@@ -18,12 +19,17 @@ public class UserService {
     private final UserRepository  userRepository;
     private final UserRoleRepository userRoleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
 
     @Autowired
-    public UserService(UserRepository userRepository, UserRoleRepository userRoleRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository,
+            UserRoleRepository userRoleRepository,
+            PasswordEncoder passwordEncoder,
+            UserMapper userMapper) {
         this.userRepository = userRepository;
         this.userRoleRepository = userRoleRepository;
         this.passwordEncoder = passwordEncoder;
+        this.userMapper = userMapper;
     }
 
     public User getUserByEmail(String email) {
@@ -31,7 +37,7 @@ public class UserService {
     }
 
     public void createUser(UserCreateRequest request) {
-        User user = UserMapper.INSTANCE.toUser(request);
+        User user = this.userMapper.toUser(request);
         user.setPasswordHash(passwordEncoder.encode(user.getPasswordHash()));
         user.setPublicId(UUID.randomUUID());
         userRepository.save(user);
@@ -40,5 +46,21 @@ public class UserService {
         userRole.setUser(user);
         userRole.setRoleName(Role.valueOf(request.getRole()));
         userRoleRepository.save(userRole);
+    }
+
+    public UserDto getMySelf(String email) {
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+
+        UserDto userDto = this.userMapper.toUserDto(user);
+        userDto.setRoles(user.getUserRoles()
+            .stream()
+            .map(UserRole::getRoleName)
+            .map(Role::name)
+            .toList()
+        );
+        return userDto;
     }
 }

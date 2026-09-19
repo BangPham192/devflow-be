@@ -2,9 +2,12 @@ package com.backend.devflow.controllers;
 
 import com.backend.devflow.dao.impl.RefreshTokenDaoImpl;
 import com.backend.devflow.dtos.AuthTokenDto;
+import com.backend.devflow.dtos.UserDto;
 import com.backend.devflow.interfaces.IAuthenticationController;
-import com.backend.devflow.request.UserCreateRequest;
+import com.backend.devflow.models.User;
 import com.backend.devflow.request.LoginRequest;
+import com.backend.devflow.request.RefreshTokenRequest;
+import com.backend.devflow.request.UserCreateRequest;
 import com.backend.devflow.services.JwtService;
 import com.backend.devflow.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -59,5 +63,40 @@ public class AuthenticationController extends BaseController implements IAuthent
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+    }
+
+    @Override
+    public AuthTokenDto refreshToken(RefreshTokenRequest request) {
+        try {
+            String userName = jwtService.extractUsername(request.getRefreshToken());
+            // add logic validate token from redis
+            String refreshTokenFromRedis = refreshTokenDao.getRefreshTokenByUsername(userName);
+            if (refreshTokenFromRedis == null || !refreshTokenFromRedis.equals(request.getRefreshToken())) {
+                throw new RuntimeException("Invalid refresh token");
+            }
+            User user = userService.getUserByEmail(userName);
+            if (user == null) {
+                throw new RuntimeException("User not found");
+            }
+            // generate token
+            String newToken =  jwtService.generateToken(userName, 5L * 60 * 1000); // 5 minutes
+            String newRefreshToken = jwtService.generateToken(userName, 7 * 24 * 60 * 60 * 1000);
+            AuthTokenDto authTokenDto = new AuthTokenDto();
+            authTokenDto.setAccessToken(newToken);
+            authTokenDto.setRefreshToken(newRefreshToken);
+
+            // store refresh token
+            refreshTokenDao.storeRefreshToken(authTokenDto.refreshToken, userName);
+            return authTokenDto;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    @Override
+    public UserDto getMySelf() {
+        UserDetails currentUser = getCurrentUser();
+        return userService.getMySelf(currentUser.getUsername());
     }
 }

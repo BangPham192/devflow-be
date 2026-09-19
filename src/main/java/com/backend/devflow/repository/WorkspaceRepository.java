@@ -12,7 +12,7 @@ import org.springframework.stereotype.Repository;
 import java.util.UUID;
 
 @Repository
-public interface WorkspaceRepository extends JpaRepository<Workspace, UUID> {
+public interface WorkspaceRepository extends JpaRepository<Workspace, Long> {
     Workspace findByPublicId(UUID uuid);
 
     @Query("SELECT w FROM Workspace w WHERE w.status = :status")
