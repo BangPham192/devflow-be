@@ -10,6 +10,8 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.factory.Mappers;
 
+import java.util.List;
+
 @Mapper(componentModel = "spring",
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
         imports = java.util.UUID.class,
@@ -22,6 +24,8 @@ public interface WorkspaceMapper {
 
     @Mapping(target = "user", source = "owner")
     WorkspaceDto toDto(Workspace workspace);
+
+    List<WorkspaceDto> toDto(List<Workspace> workspaces);
 
     @Mapping(target = "publicId", ignore = true)
     @Mapping(target = "ownerId", ignore = true)

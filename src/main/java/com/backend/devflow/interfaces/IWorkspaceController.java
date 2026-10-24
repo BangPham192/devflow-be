@@ -6,6 +6,7 @@ import com.backend.devflow.request.WorkspaceCreateRequest;
 import com.backend.devflow.request.WorkspaceUpdateRequest;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -21,12 +22,15 @@ public interface IWorkspaceController {
     WorkspaceDto createWorkspace(@RequestBody @Valid WorkspaceCreateRequest workspace);
 
     @GetMapping("/{workspaceId}")
-    WorkspaceDto getWorkspace(@PathVariable UUID workspaceId);
+    WorkspaceDto getWorkspace(@PathVariable("workspaceId") UUID workspaceId);
 
     @PatchMapping("/{workspaceId}")
-    WorkspaceDto updateWorkspace(@PathVariable UUID workspaceId, @RequestBody @Valid WorkspaceUpdateRequest workspace);
+    WorkspaceDto updateWorkspace(@PathVariable("workspaceId") UUID workspaceId, @RequestBody @Valid WorkspaceUpdateRequest workspace);
 
     @DeleteMapping("/{workspaceId}")
-    void deleteWorkspace(@PathVariable UUID workspaceId);
+    void deleteWorkspace(@PathVariable("workspaceId") UUID workspaceId);
+
+    @PostMapping("/leave")
+    ResponseEntity<Void> leaveWorkspace(@PathVariable("workspaceId") UUID workspaceId);
 
 }
