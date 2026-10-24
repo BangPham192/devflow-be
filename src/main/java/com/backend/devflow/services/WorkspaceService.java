@@ -9,14 +9,15 @@ import com.backend.devflow.repository.WorkspaceMemberRepository;
 import com.backend.devflow.repository.WorkspaceRepository;
 import com.backend.devflow.request.WorkspaceCreateRequest;
 import com.backend.devflow.request.WorkspaceUpdateRequest;
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -74,7 +75,7 @@ public class WorkspaceService {
     }
 
     public WorkspaceDto getWorkspaceByPublicId(UUID id) {
-        Workspace workspace = workspaceRepository.findByPublicId(id);
+        Workspace workspace = workspaceRepository.findByPublicId(id).orElseThrow(() -> new RuntimeException("Workspace not found"));
         return this.workspaceMapper.toDto(workspace);
     }
 
@@ -85,7 +86,7 @@ public class WorkspaceService {
             throw new RuntimeException("User not found");
         }
 
-        Workspace workspace = workspaceRepository.findByPublicId(id);
+        Workspace workspace = workspaceRepository.findByPublicId(id).orElseThrow(() -> new RuntimeException("Workspace not found"));
         workspace = this.workspaceMapper.update(workspace, request);
         workspaceRepository.save(workspace);
 
@@ -94,10 +95,22 @@ public class WorkspaceService {
     }
 
     public void deleteWorkspace(UUID workspaceId) {
-        Workspace workspace = workspaceRepository.findByPublicId(workspaceId);
-        if (workspace == null) {
-            throw new RuntimeException("Workspace not found");
-        }
+        Workspace workspace = workspaceRepository.findByPublicId(workspaceId).orElseThrow(() -> new RuntimeException("Workspace not found"));
         workspaceRepository.delete(workspace);
+    }
+
+    @Transactional
+    public void leaveWorkspace(UUID workspaceId, UserDetails currentUser) {
+        User actor = userRepository.findByEmail(currentUser.getUsername());
+        if (actor == null) {
+            throw new RuntimeException("User not found");
+        }
+        Workspace workspace = workspaceRepository.findByPublicId(workspaceId).orElseThrow(() -> new RuntimeException("Workspace not found"));
+        WorkspaceMember actorMember = workspaceMemberRepository.findByWorkspaceIdAndUserId(workspace.getId(), actor.getId()).orElseThrow(() -> new RuntimeException("User not found"));
+        if (WorkspaceRole.OWNER.equals(actorMember.getRoleName())) {
+            throw new RuntimeException("Workspace owner cannot leave the workspace. " +
+                "Transfer ownership first.");
+        }
+        workspaceMemberRepository.delete(actorMember);
     }
 }

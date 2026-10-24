@@ -8,6 +8,7 @@ import com.backend.devflow.request.WorkspaceUpdateRequest;
 import com.backend.devflow.services.WorkspaceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -48,5 +49,12 @@ public class WorkspaceController extends BaseController implements IWorkspaceCon
     @Override
     public void deleteWorkspace(UUID workspaceId) {
         workspaceService.deleteWorkspace(workspaceId);
+    }
+
+    @Override
+    public ResponseEntity<Void> leaveWorkspace(UUID workspaceId) {
+        UserDetails currentUser = getCurrentUser();
+        workspaceService.leaveWorkspace(workspaceId, currentUser);
+        return ResponseEntity.noContent().build();
     }
 }
