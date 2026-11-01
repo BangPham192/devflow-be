@@ -30,7 +30,7 @@ public interface IWorkspaceController {
     @DeleteMapping("/{workspaceId}")
     void deleteWorkspace(@PathVariable("workspaceId") UUID workspaceId);
 
-    @PostMapping("/leave")
+    @PostMapping("{workspaceId}/leave")
     ResponseEntity<Void> leaveWorkspace(@PathVariable("workspaceId") UUID workspaceId);
 
 }

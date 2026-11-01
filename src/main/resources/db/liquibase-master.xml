@@ -13,6 +13,8 @@ xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
          relativeToChangelogFile="true"/>
     <include file="changelog/20260906_add_workspace_members_table.xml"
          relativeToChangelogFile="true"/>
-             <include file="changelog/20260906_add_workspace_invitations_table.xml"
+    <include file="changelog/20260906_add_workspace_invitations_table.xml"
+         relativeToChangelogFile="true"/>
+    <include file="changelog/20260906_add_projects_table.xml"
          relativeToChangelogFile="true"/>
 </databaseChangeLog>
