@@ -1,6 +1,7 @@
 package com.backend.devflow.services;
 
 import com.backend.devflow.dtos.WorkspaceDto;
+import com.backend.devflow.exception.ExceptionHelper;
 import com.backend.devflow.http.PageRequestCustom;
 import com.backend.devflow.mapper.WorkspaceMapper;
 import com.backend.devflow.models.*;
@@ -57,7 +58,7 @@ public class WorkspaceService {
     public WorkspaceDto createWorkspace(WorkspaceCreateRequest request, UserDetails currentUser) {
         User user = userRepository.findByEmail(currentUser.getUsername());
         if (user == null) {
-            throw new RuntimeException("User not found");
+            ExceptionHelper.BAD_REQUEST.throwCustomException("User not found", null);
         }
         // create workspace
         Workspace workspace = this.workspaceMapper.toEntity(request);
@@ -75,7 +76,7 @@ public class WorkspaceService {
     }
 
     public WorkspaceDto getWorkspaceByPublicId(UUID id) {
-        Workspace workspace = workspaceRepository.findByPublicId(id).orElseThrow(() -> new RuntimeException("Workspace not found"));
+        Workspace workspace = workspaceRepository.findByPublicId(id).orElseThrow(() -> ExceptionHelper.BAD_REQUEST.throwCustomException("Workspace not found", null));
         return this.workspaceMapper.toDto(workspace);
     }
 
@@ -83,10 +84,10 @@ public class WorkspaceService {
     public WorkspaceDto updateWorkspace(UUID id, UserDetails currentUser, WorkspaceUpdateRequest request) {
         User user = userRepository.findByEmail(currentUser.getUsername());
         if (user == null) {
-            throw new RuntimeException("User not found");
+            ExceptionHelper.BAD_REQUEST.throwCustomException("User not found", null);
         }
 
-        Workspace workspace = workspaceRepository.findByPublicId(id).orElseThrow(() -> new RuntimeException("Workspace not found"));
+        Workspace workspace = workspaceRepository.findByPublicId(id).orElseThrow(() -> ExceptionHelper.BAD_REQUEST.throwCustomException("Workspace not found", null));
         workspace = this.workspaceMapper.update(workspace, request);
         workspaceRepository.save(workspace);
 
@@ -95,7 +96,7 @@ public class WorkspaceService {
     }
 
     public void deleteWorkspace(UUID workspaceId) {
-        Workspace workspace = workspaceRepository.findByPublicId(workspaceId).orElseThrow(() -> new RuntimeException("Workspace not found"));
+        Workspace workspace = workspaceRepository.findByPublicId(workspaceId).orElseThrow(() -> ExceptionHelper.BAD_REQUEST.throwCustomException("Workspace not found", null));
         workspaceRepository.delete(workspace);
     }
 
@@ -103,13 +104,13 @@ public class WorkspaceService {
     public void leaveWorkspace(UUID workspaceId, UserDetails currentUser) {
         User actor = userRepository.findByEmail(currentUser.getUsername());
         if (actor == null) {
-            throw new RuntimeException("User not found");
+            ExceptionHelper.BAD_REQUEST.throwCustomException("User not found", null);
         }
-        Workspace workspace = workspaceRepository.findByPublicId(workspaceId).orElseThrow(() -> new RuntimeException("Workspace not found"));
-        WorkspaceMember actorMember = workspaceMemberRepository.findByWorkspaceIdAndUserId(workspace.getId(), actor.getId()).orElseThrow(() -> new RuntimeException("User not found"));
+        Workspace workspace = workspaceRepository.findByPublicId(workspaceId).orElseThrow(() -> ExceptionHelper.BAD_REQUEST.throwCustomException("Workspace not found", null));
+        WorkspaceMember actorMember = workspaceMemberRepository.findByWorkspaceIdAndUserId(workspace.getId(), actor.getId()).orElseThrow(() -> ExceptionHelper.BAD_REQUEST.throwCustomException("User not found", null   ));
         if (WorkspaceRole.OWNER.equals(actorMember.getRoleName())) {
-            throw new RuntimeException("Workspace owner cannot leave the workspace. " +
-                "Transfer ownership first.");
+            ExceptionHelper.BAD_REQUEST.throwCustomException("Workspace owner cannot leave the workspace. " +
+                "Transfer ownership first.", null);
         }
         workspaceMemberRepository.delete(actorMember);
     }
