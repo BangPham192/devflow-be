@@ -3,6 +3,7 @@ package com.backend.devflow.controllers;
 import com.backend.devflow.dao.impl.RefreshTokenDaoImpl;
 import com.backend.devflow.dtos.AuthTokenDto;
 import com.backend.devflow.dtos.UserDto;
+import com.backend.devflow.exception.ExceptionHelper;
 import com.backend.devflow.interfaces.IAuthenticationController;
 import com.backend.devflow.models.User;
 import com.backend.devflow.request.LoginRequest;
@@ -17,6 +18,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 public class AuthenticationController extends BaseController implements IAuthenticationController {
@@ -46,7 +48,7 @@ public class AuthenticationController extends BaseController implements IAuthent
             refreshTokenDao.storeRefreshToken(authTokenDto.refreshToken, request.getUsername());
             return authTokenDto;
         } catch (Exception e) {
-            throw new RuntimeException("Authentication failed: " + e.getMessage());
+            throw ExceptionHelper.UNAUTHORIZED.throwCustomException("Error during login" + e.getMessage(), null);
         }
     }
 
@@ -72,11 +74,11 @@ public class AuthenticationController extends BaseController implements IAuthent
             // add logic validate token from redis
             String refreshTokenFromRedis = refreshTokenDao.getRefreshTokenByUsername(userName);
             if (refreshTokenFromRedis == null || !refreshTokenFromRedis.equals(request.getRefreshToken())) {
-                throw new RuntimeException("Invalid refresh token");
+                ExceptionHelper.UNAUTHORIZED.throwCustomException("Refresh token is required", null);
             }
             User user = userService.getUserByEmail(userName);
             if (user == null) {
-                throw new RuntimeException("User not found");
+                ExceptionHelper.UNAUTHORIZED.throwCustomException("User not found", null);
             }
             // generate token
             String newToken =  jwtService.generateToken(userName, 5L * 60 * 1000); // 5 minutes
@@ -89,9 +91,8 @@ public class AuthenticationController extends BaseController implements IAuthent
             refreshTokenDao.storeRefreshToken(authTokenDto.refreshToken, userName);
             return authTokenDto;
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw ExceptionHelper.UNAUTHORIZED.throwCustomException("Error refreshing token: " + e.getMessage(), null);
         }
-
     }
 
     @Override

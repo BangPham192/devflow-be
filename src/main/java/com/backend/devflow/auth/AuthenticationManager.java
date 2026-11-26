@@ -1,5 +1,6 @@
 package com.backend.devflow.auth;
 
+import com.backend.devflow.exception.ExceptionHelper;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -10,15 +11,15 @@ public class AuthenticationManager {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null) {
-            throw new RuntimeException("Authentication object is null");
+            ExceptionHelper.UNAUTHORIZED.throwCustomException("User is not authenticated", null);
         }
 
         if (!authentication.isAuthenticated()) {
-            throw new RuntimeException("Authentication object is not authenticated");
+            ExceptionHelper.UNAUTHORIZED.throwCustomException("User is not authenticated", null);
         }
 
         if (!(authentication.getPrincipal() instanceof  UserDetails)) {
-            throw new RuntimeException("Authentication object is not instance of UserDetails");
+            ExceptionHelper.UNAUTHORIZED.throwCustomException("User is not authenticated", null);
         }
 
         return (UserDetails) authentication.getPrincipal();

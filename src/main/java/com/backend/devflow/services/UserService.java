@@ -1,6 +1,7 @@
 package com.backend.devflow.services;
 
 import com.backend.devflow.dtos.UserDto;
+import com.backend.devflow.exception.ExceptionHelper;
 import com.backend.devflow.mapper.UserMapper;
 import com.backend.devflow.models.Role;
 import com.backend.devflow.models.User;
@@ -51,7 +52,7 @@ public class UserService {
     public UserDto getMySelf(String email) {
         User user = userRepository.findByEmail(email);
         if (user == null) {
-            throw new RuntimeException("User not found");
+            ExceptionHelper.BAD_REQUEST.throwCustomException("User not found", null);
         }
 
         UserDto userDto = this.userMapper.toUserDto(user);
